@@ -1,50 +1,114 @@
-# Welcome to your Expo app 👋
+# 🌀 Tunnel Runner 3D  —  SDK 55 Edition
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Neon cyberpunk endless-runner for **Android & iOS**.  
+Built with **Expo SDK 55 + Expo Router v7 + TypeScript**.
 
-## Get started
+---
 
-1. Install dependencies
+## Stack
 
-   ```bash
-   npm install
-   ```
+| Layer | Package | Why |
+|---|---|---|
+| Framework | `expo@^55` | Latest SDK (Feb 2026), New Architecture only |
+| Navigation | `expo-router@^7` | File-based routing, ships with SDK 55 |
+| 3D Engine | `three@^0.172` | Latest Three.js — **no expo-three** (it's dead) |
+| WebGL | `expo-gl@^55` | Provides native OpenGL-ES context to Three.js |
+| Gyroscope | `expo-sensors@^55` | Tilt controls |
+| Haptics | `expo-haptics@^55` | Collision + wall warning vibration |
+| Storage | `@react-native-async-storage/async-storage@^2` | High score + settings |
 
-2. Start the app
+> **`expo-three` is NOT used.** It's unmaintained and incompatible with SDK 55.  
+> Instead, `THREE.WebGLRenderer` is initialised directly with a canvas shim that  
+> wraps the `expo-gl` context. See `app/game.tsx → makeCanvasShim()`.
 
-   ```bash
-   npx expo start
-   ```
+---
 
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+## Setup
 
 ```bash
-npm run reset-project
+# Node 20 or 22 LTS required (Node 24 is NOT supported by SDK 55)
+node --version   # v20.x or v22.x
+
+npm install
+npx expo start --clear
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Scan the QR with **Expo Go** on a physical device.  
+Gyroscope does **not** work on simulators/emulators.
 
-## Learn more
+---
 
-To learn more about developing your project with Expo, look at the following resources:
+## File structure
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+```
+app/
+  _layout.tsx   Expo Router v7 stack (fade / slide transitions)
+  index.tsx     Main menu
+  game.tsx      3D game — Three.js + gyro + haptics
+  gameover.tsx  Results — grade, score, personal best
+  settings.tsx  Sensitivity, difficulty, haptics, reset
+metro.config.js  unstable_enablePackageExports=false (required for Three.js)
+```
 
-## Join the community
+---
 
-Join our community of developers creating universal apps.
+## Key implementation notes
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+### Three.js without expo-three
+
+```ts
+// makeCanvasShim — fakes an HTMLCanvasElement for THREE.WebGLRenderer
+const renderer = new THREE.WebGLRenderer({
+  canvas: makeCanvasShim(gl),   // width/height/getContext shim
+  context: gl,                   // real native WebGL context from expo-gl
+  antialias: false,
+  powerPreference: 'high-performance',
+});
+renderer.setPixelRatio(1);      // always 1 — expo-gl handles DPR natively
+// After each frame:
+gl.endFrameEXP();               // commits the frame to the screen
+```
+
+### Gyroscope
+
+```ts
+Gyroscope.setUpdateInterval(16);   // ~60 fps
+Gyroscope.addListener(d => { gyroData.current = d; });
+// In the game tick:
+px.x = clamp(px.x - gyro.y * sensitivity * dt, -MAX, MAX);
+px.y = clamp(px.y - gyro.x * sensitivity * dt, -MAX, MAX);
+```
+
+### Haptics
+
+```ts
+// Wall proximity warning
+Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+// Ring collision
+Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)
+// Game over (all lives gone)
+Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error)
+// New high score on results screen
+Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+```
+
+---
+
+## Tunable constants (`app/game.tsx`)
+
+```ts
+const INITIAL_SPEED    = 0.055;  // base forward speed
+const OBSTACLE_SPACING = 11;     // units between rings
+const INVINCIBLE_MS    = 2200;   // shield after hit (ms)
+const WALL_WARN_FRAC   = 0.88;   // fraction of radius that triggers warning haptic
+```
+
+Difficulty modifiers:
+
+```ts
+const DIFF = {
+  easy:   { gap: Math.PI * 0.56, maxSpd: 0.22 },
+  normal: { gap: Math.PI * 0.48, maxSpd: 0.32 },
+  hard:   { gap: Math.PI * 0.38, maxSpd: 0.42 },
+};
+```
