@@ -5,6 +5,7 @@ import { useEffect } from 'react';
 
 SplashScreen.preventAutoHideAsync();
 
+/** Root-Layout der App. Konfiguriert den Stack-Navigator, steuert den Splash Screen und blendet die StatusBar aus. */
 export default function RootLayout() {
   useEffect(() => {
     SplashScreen.hideAsync();
