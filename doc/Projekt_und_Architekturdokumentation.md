@@ -993,29 +993,38 @@ Android-tunnel-runner/
 **Team:** Mahmoud Abdallah (Entwicklung), Alex Savkov (Dokumentation)
 **Zeitraum:** KW 9–12 (Feb/März 2026), ~40h pro Person
 
-### Mahmud - Entwicklung
+### Mahmud Das
 
 | Maßnahme | Plan | Ist |
 |---|---|---|
-| Projektsetup (Expo Init, Repo, Dependencies) | 3h | 5h |
-| 3D-Spiellogik (Three.js, Tunnel, Kollision) | 14h | 18h |
-| Sensor-Integration (Gyro, Haptics) | 4h | 3h |
-| UI-Screens (Menü, Settings, GameOver, HUD) | 8h | 6h |
-| Persistenz (AsyncStorage) | 3h | 2h |
-| Tooling-Configs, Bugfixing, Testing | 8h | 6h |
+| Projektsetup (Expo Init, Repo, Dependencies) | 3h | 4h |
+| 3D-Spiellogik (Three.js, Tunnel, Kollision) | 10h | 12h |
+| Sensor-Integration (Gyro, Haptics) | 3h | 2h |
+| UI-Screens (Menü, Settings, GameOver, HUD) | 5h | 4h |
+| Persistenz (AsyncStorage) | 2h | 2h |
+| Tooling-Configs, Bugfixing, Testing | 4h | 3h |
+| Kap. 3 – Architektur (Abschnitte 3.1–3.5) | 5h | 6h |
+| Kap. 4 – Tooling | 3h | 3h |
+| Kap. 7 – Quellcode-Übersicht | 2h | 2h |
+| Review & Korrektur Doku | 3h | 2h |
 | **Gesamt** | **40h** | **40h** |
 
-### Alex - Dokumentation
+### Alex Savkov
 
 | Maßnahme | Plan | Ist |
 |---|---|---|
+| Projektsetup (Expo Init, Repo, Dependencies) | 2h | 2h |
+| 3D-Spiellogik (Three.js, Tunnel, Kollision) | 4h | 6h |
+| Sensor-Integration (Gyro, Haptics) | 2h | 2h |
+| UI-Screens (Menü, Settings, GameOver, HUD) | 3h | 2h |
+| Persistenz (AsyncStorage) | 1h | 1h |
+| Tooling-Configs, Bugfixing, Testing | 4h | 3h |
 | Tech Stack Canvas | 2h | 2h |
-| Kap. 3 – Architektur | 12h | 14h |
-| Kap. 4 – Tooling | 5h | 5h |
+| Kap. 3 – Architektur (Abschnitte 3.6–3.11) | 7h | 8h |
 | Kap. 5 – Qualität | 5h | 5h |
 | Kap. 6 – Projektbericht | 3h | 3h |
-| JSDoc-Kommentare einfügen | 2h | 2h |
-| Struktur, Einleitung, Review, Anhang | 11h | 9h |
+| Einleitung, JSDoc, Anhang | 4h | 3h |
+| Review & Korrektur Doku | 3h | 3h |
 | **Gesamt** | **40h** | **40h** |
 
 Größte Fehlplanung: 3D-Engine. ~5h flossen in die Evaluierung und Verwerfung von expo-gl, bevor der WebView-Ansatz umgesetzt wurde.
