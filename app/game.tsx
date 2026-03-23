@@ -31,6 +31,10 @@ import { DEFAULT_SETTINGS, SETTINGS_KEY, type GameSettings } from './settings';
 // ─────────────────────────────────────────────────────────────────────────────
 // HTML BUILDER  — bakes difficulty + sensitivity into the page at load time
 // ─────────────────────────────────────────────────────────────────────────────
+/**
+ * Generiert den vollständigen HTML-String mit eingebettetem Three.js-Spiel.
+ * Difficulty und Sensitivity werden als Konstanten in das JavaScript gebacken.
+ */
 function buildGameHTML(settings: GameSettings): string {
   const { difficulty, gyroSensitivity } = settings;
 
@@ -299,6 +303,10 @@ function buildGameHTML(settings: GameSettings): string {
 // ─────────────────────────────────────────────────────────────────────────────
 // COMPONENT
 // ─────────────────────────────────────────────────────────────────────────────
+/**
+ * Haupt-Game-Screen. Hostet die Three.js-Spielwelt in einer WebView, empfängt
+ * Gyroskop-Daten und überbrückt Events zwischen nativem HUD und WebView-JavaScript.
+ */
 export default function GameScreen() {
   const [score,    setScore]    = useState(0);
   const [lives,    setLives]    = useState(3);
