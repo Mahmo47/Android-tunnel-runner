@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - "docs/SAA/arc42-doc.md"
+      - "doc/Projekt_und_Architekturdokumentation.md"
       - ".github/workflows/build-arc42-pdf.yml"
   workflow_dispatch:
 
