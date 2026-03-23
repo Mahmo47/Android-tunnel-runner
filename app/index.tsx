@@ -10,8 +10,13 @@ import {
 } from 'react-native';
 
 const { width: SW } = Dimensions.get('window');
+/** AsyncStorage-Key für den persistierten Highscore. */
 export const HS_KEY = 'tunnel_highscore_v3';
 
+/**
+ * Hauptmenü-Screen. Zeigt den Titel mit Eingangsanimation, den persönlichen
+ * Highscore, eine kompakte Spielanleitung und Buttons für Game-Start und Settings.
+ */
 export default function MenuScreen() {
   const [highScore, setHighScore] = useState(0);
   const titleY    = useRef(new Animated.Value(-40)).current;
@@ -79,6 +84,7 @@ export default function MenuScreen() {
   );
 }
 
+/** Einzelne Icon-Text-Zeile für die „HOW TO PLAY"-Anleitung im Menü. */
 const InfoRow = ({ icon, text }: { icon: string; text: string }) => (
   <View style={s.infoRow}>
     <Text style={s.infoIcon}>{icon}</Text>
