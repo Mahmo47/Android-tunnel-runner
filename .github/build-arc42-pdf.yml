@@ -1,0 +1,333 @@
+name: Build Arc42 PDF
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "docs/SAA/arc42-doc.md"
+      - ".github/workflows/build-arc42-pdf.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-pdf:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Create package.json
+        run: |
+          cat > package.json <<'EOF'
+          {
+            "name": "arc42-pdf-builder",
+            "private": true,
+            "type": "module",
+            "dependencies": {
+              "playwright": "^1.52.0"
+            }
+          }
+          EOF
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Render Markdown to PDF
+        env:
+          INPUT_MD: docs/SAA/arc42-doc.md
+          OUTPUT_PDF: docs/SAA/arc42-doc.pdf
+        run: |
+          cat > render-github-markdown-to-pdf.mjs <<'EOF'
+          import fs from "node:fs";
+          import path from "node:path";
+          import { chromium } from "playwright";
+
+          const inputPath = process.env.INPUT_MD;
+          const outputPdf = process.env.OUTPUT_PDF;
+
+          if (!inputPath || !outputPdf) {
+            throw new Error("Missing required environment variables.");
+          }
+
+          if (!fs.existsSync(inputPath)) {
+            throw new Error(`Markdown file not found: ${inputPath}`);
+          }
+
+          const markdown = fs.readFileSync(inputPath, "utf8");
+          fs.mkdirSync(path.dirname(outputPdf), { recursive: true });
+
+          const html = String.raw`<!DOCTYPE html>
+          <html lang="en">
+            <head>
+              <meta charset="UTF-8" />
+              <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+              <title>arc42-doc</title>
+
+              <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.8.1/github-markdown-light.min.css">
+
+              <style>
+                @page {
+                  size: A4;
+                  margin: 16mm 14mm 18mm 14mm;
+                }
+
+                html, body {
+                  margin: 0;
+                  padding: 0;
+                  background: #ffffff;
+                }
+
+                body {
+                  -webkit-print-color-adjust: exact !important;
+                  print-color-adjust: exact !important;
+                  font-family: "Segoe UI", Arial, sans-serif;
+                  color: #111111;
+                }
+
+                .markdown-body {
+                  box-sizing: border-box;
+                  max-width: 180mm;
+                  margin: 0 auto;
+                  padding: 0;
+                  background: #ffffff;
+                  font-size: 10.5pt;
+                  line-height: 1.45;
+                  word-break: normal;
+                  overflow-wrap: anywhere;
+                }
+
+                .markdown-body h1 {
+                  font-size: 20pt;
+                  margin-top: 0;
+                  page-break-after: avoid;
+                  break-after: avoid;
+                }
+
+                .markdown-body h2 {
+                  font-size: 16pt;
+                  margin-top: 18pt;
+                  page-break-after: avoid;
+                  break-after: avoid;
+                }
+
+                .markdown-body h3,
+                .markdown-body h4 {
+                  page-break-after: avoid;
+                  break-after: avoid;
+                }
+
+                .markdown-body p,
+                .markdown-body li {
+                  orphans: 3;
+                  widows: 3;
+                }
+
+                .markdown-body pre {
+                  white-space: pre-wrap;
+                  overflow-wrap: anywhere;
+                }
+
+                .markdown-body pre,
+                .markdown-body code {
+                  font-size: 8.8pt;
+                }
+
+                .markdown-body img,
+                .markdown-body svg {
+                  max-width: 100%;
+                  height: auto !important;
+                }
+
+                .markdown-body table {
+                  width: 100%;
+                  table-layout: auto;
+                  font-size: 8.5pt;
+                  line-height: 1.3;
+                  break-inside: auto;
+                  page-break-inside: auto;
+                }
+
+                .markdown-body th,
+                .markdown-body td {
+                  padding: 4px 6px;
+                  word-break: normal;
+                  overflow-wrap: break-word;
+                  hyphens: auto;
+                }
+
+                .mermaid {
+                  text-align: center;
+                  margin: 10pt 0 14pt 0;
+                  break-inside: auto;
+                  page-break-inside: auto;
+                }
+
+                .mermaid svg {
+                  max-width: 100% !important;
+                  height: auto !important;
+                }
+
+                hr {
+                  border: 0;
+                  border-top: 1px solid #dddddd;
+                  margin: 16pt 0;
+                }
+
+                @media print {
+                  .markdown-body {
+                    max-width: none;
+                    margin: 0;
+                    padding: 0;
+                  }
+
+                  pre,
+                  blockquote {
+                    break-inside: avoid;
+                    page-break-inside: avoid;
+                  }
+
+                  table,
+                  img,
+                  svg {
+                    break-inside: auto;
+                    page-break-inside: auto;
+                  }
+                }
+              </style>
+            </head>
+            <body>
+              <article id="content" class="markdown-body">Loading…</article>
+
+              <script type="module">
+                import { marked } from "https://cdn.jsdelivr.net/npm/marked/lib/marked.esm.js";
+                import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+
+                const source = ${JSON.stringify(markdown)};
+
+                mermaid.initialize({
+                  startOnLoad: false,
+                  securityLevel: "loose",
+                  theme: "default",
+                  flowchart: {
+                    useMaxWidth: true,
+                    htmlLabels: false
+                  },
+                  sequence: {
+                    useMaxWidth: true
+                  }
+                });
+
+                const renderer = new marked.Renderer();
+
+                renderer.code = ({ text, lang }) => {
+                  if (lang === "mermaid") {
+                    return '<div class="mermaid">' + text + '</div>';
+                  }
+                  const escaped = text
+                    .replaceAll("&", "&amp;")
+                    .replaceAll("<", "&lt;")
+                    .replaceAll(">", "&gt;");
+                  const langClass = lang ? ' class="language-' + lang + '"' : "";
+                  return '<pre><code' + langClass + '>' + escaped + '</code></pre>';
+                };
+
+                marked.setOptions({
+                  gfm: true,
+                  breaks: false,
+                  renderer
+                });
+
+                const content = document.getElementById("content");
+                content.innerHTML = marked.parse(source);
+
+                const mermaidBlocks = Array.from(document.querySelectorAll(".mermaid"));
+                for (const block of mermaidBlocks) {
+                  const graphDefinition = block.textContent;
+                  const id = "mermaid-" + Math.random().toString(36).slice(2);
+                  const result = await mermaid.render(id, graphDefinition);
+                  block.innerHTML = result.svg;
+
+                  const svg = block.querySelector("svg");
+                  if (svg) {
+                    svg.removeAttribute("width");
+                    svg.removeAttribute("height");
+                    svg.style.maxWidth = "100%";
+                    svg.style.height = "auto";
+                  }
+                }
+
+                window.__PDF_READY__ = true;
+              </script>
+            </body>
+          </html>`;
+
+          const browser = await chromium.launch({ headless: true });
+          const page = await browser.newPage({
+            viewport: { width: 1440, height: 2200 }
+          });
+
+          await page.setContent(html, {
+            waitUntil: "networkidle",
+            timeout: 120000
+          });
+
+          await page.waitForFunction(() => window.__PDF_READY__ === true, null, {
+            timeout: 120000
+          });
+
+          await page.pdf({
+            path: outputPdf,
+            format: "A4",
+            printBackground: true,
+            preferCSSPageSize: true
+          });
+
+          await browser.close();
+
+          if (!fs.existsSync(outputPdf)) {
+            throw new Error(`PDF was not created: ${outputPdf}`);
+          }
+
+          const stats = fs.statSync(outputPdf);
+          if (stats.size === 0) {
+            throw new Error(`PDF was created but is empty: ${outputPdf}`);
+          }
+
+          console.log(`Created ${outputPdf} (${stats.size} bytes)`);
+          EOF
+
+          node render-github-markdown-to-pdf.mjs
+
+      - name: Verify PDF exists
+        run: |
+          test -f docs/SAA/arc42-doc.pdf || { echo "PDF was not generated."; exit 1; }
+          test -s docs/SAA/arc42-doc.pdf || { echo "PDF is empty."; exit 1; }
+
+      - name: Commit PDF if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add docs/SAA/arc42-doc.pdf
+
+          if git diff --cached --quiet; then
+            echo "No PDF changes to commit."
+            exit 0
+          fi
+
+          git commit -m "Update arc42 PDF"
+          git push
