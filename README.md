@@ -1,7 +1,7 @@
-# 🌀 Tunnel Runner 3D  —  SDK 55 Edition
+# 🌀 Tunnel Runner 3D
 
-Neon cyberpunk endless-runner for **Android & iOS**.  
-Built with **Expo SDK 55 + Expo Router v7 + TypeScript**.
+Neon cyberpunk endless-runner for **Android & iOS**.
+Built with **Expo SDK 54 + Expo Router v6 + TypeScript (strict)**.
 
 ---
 
@@ -9,31 +9,26 @@ Built with **Expo SDK 55 + Expo Router v7 + TypeScript**.
 
 | Layer | Package | Why |
 |---|---|---|
-| Framework | `expo@^55` | Latest SDK (Feb 2026), New Architecture only |
-| Navigation | `expo-router@^7` | File-based routing, ships with SDK 55 |
-| 3D Engine | `three@^0.172` | Latest Three.js — **no expo-three** (it's dead) |
-| WebGL | `expo-gl@^55` | Provides native OpenGL-ES context to Three.js |
-| Gyroscope | `expo-sensors@^55` | Tilt controls |
-| Haptics | `expo-haptics@^55` | Collision + wall warning vibration |
-| Storage | `@react-native-async-storage/async-storage@^2` | High score + settings |
+| Framework | `expo@^54` | Managed Workflow, Expo Go kompatibel |
+| Navigation | `expo-router@~6` | File-based routing |
+| 3D Engine | `three@0.128` via CDN in WebView | expo-gl/expo-three inkompatibel mit SDK 54 |
+| Gyroscope | `expo-sensors` | Tilt controls (16ms Intervall) |
+| Haptics | `expo-haptics` | Kollision + Wall Warning Vibration |
+| Storage | `@react-native-async-storage/async-storage` | Highscore + Settings |
 
-> **`expo-three` is NOT used.** It's unmaintained and incompatible with SDK 55.  
-> Instead, `THREE.WebGLRenderer` is initialised directly with a canvas shim that  
-> wraps the `expo-gl` context. See `app/game.tsx → makeCanvasShim()`.
+> **Three.js läuft in einer WebView**, nicht über expo-gl.
+> Der HTML-String wird in `buildGameHTML()` generiert und per CDN geladen.
 
 ---
 
 ## Setup
 
 ```bash
-# Node 20 or 22 LTS required (Node 24 is NOT supported by SDK 55)
-node --version   # v20.x or v22.x
-
 npm install
 npx expo start --clear
 ```
 
-Scan the QR with **Expo Go** on a physical device.  
+Scan the QR with **Expo Go** on a physical device.
 Gyroscope does **not** work on simulators/emulators.
 
 ---
@@ -42,12 +37,14 @@ Gyroscope does **not** work on simulators/emulators.
 
 ```
 app/
-  _layout.tsx   Expo Router v7 stack (fade / slide transitions)
-  index.tsx     Main menu
-  game.tsx      3D game — Three.js + gyro + haptics
-  gameover.tsx  Results — grade, score, personal best
-  settings.tsx  Sensitivity, difficulty, haptics, reset
-metro.config.js  unstable_enablePackageExports=false (required for Three.js)
+  _layout.tsx     Stack Navigator (fade / slide transitions)
+  index.tsx       Main menu + highscore
+  game.tsx        3D game — Three.js WebView + gyro + haptics + HUD
+  gameover.tsx    Results — grade, score, personal best
+  settings.tsx    Sensitivity, difficulty, haptics, reset
+.prettierrc       Formatter config
+eas.json          EAS Build profiles (dev/preview/production)
+metro.config.js   .cjs support + enablePackageExports=false
 ```
 
 ---
