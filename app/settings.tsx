@@ -12,14 +12,17 @@ import {
 } from 'react-native';
 import { HS_KEY } from './index';
 
+/** AsyncStorage-Key für die persistierten Spieleinstellungen. */
 export const SETTINGS_KEY = 'tunnel_settings_v3';
 
+/** Typdefinition für alle konfigurierbaren Spieleinstellungen. */
 export type GameSettings = {
   gyroSensitivity: number;
   hapticsEnabled: boolean;
   difficulty: 'easy' | 'normal' | 'hard';
 };
 
+/** Standardwerte für alle Spieleinstellungen bei Erstinstallation oder nach Reset. */
 export const DEFAULT_SETTINGS: GameSettings = {
   gyroSensitivity: 0.11,
   hapticsEnabled: true,
@@ -39,6 +42,10 @@ const DIFF_STEPS: { label: string; value: GameSettings['difficulty']; desc: stri
   { label: 'HARD',   value: 'hard',   desc: 'Narrow gaps, higher top speed' },
 ];
 
+/**
+ * Settings-Screen. Ermöglicht Konfiguration von Gyroskop-Sensitivität,
+ * Schwierigkeitsgrad, haptischem Feedback und bietet einen vollständigen Daten-Reset.
+ */
 export default function SettingsScreen() {
   const [settings, setSettings] = useState<GameSettings>(DEFAULT_SETTINGS);
 
@@ -160,6 +167,7 @@ useEffect(() => {
   );
 }
 
+/** Wiederverwendbare Gruppen-Komponente mit Titel und Subtitle für Settings-Bereiche. */
 const Section = ({ title, subtitle, children }: { title: string; subtitle: string; children: React.ReactNode }) => (
   <View style={s.section}>
     <Text style={s.sectionTitle}>{title}</Text>
