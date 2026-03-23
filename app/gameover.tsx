@@ -14,6 +14,10 @@ import { HS_KEY } from './index';
 const { width: SW } = Dimensions.get('window');
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
 
+/**
+ * Game-Over-Screen. Zeigt den finalen Score mit Buchstaben-Grade, vergleicht
+ * gegen den persönlichen Highscore und bietet Replay- und Menü-Navigation.
+ */
 export default function GameOverScreen() {
   const { score: raw } = useLocalSearchParams<{ score: string }>();
   const score = Number(raw ?? 0);
@@ -55,6 +59,10 @@ export default function GameOverScreen() {
     });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+    /**
+   * Berechnet die Buchstaben-Note basierend auf dem erreichten Score.
+   * Stufen: S (≥5000), A (≥2500), B (≥1000), C (≥400), D (<400).
+   */
   const getGrade = () => {
     if (score >= 5000) return { label: 'S', color: '#ffcc00' };
     if (score >= 2500) return { label: 'A', color: '#00ffcc' };
@@ -107,6 +115,7 @@ export default function GameOverScreen() {
   );
 }
 
+/** Kompakte Kennzahl-Karte für Statistiken auf dem Game-Over-Screen. */
 const StatBox = ({ label, value }: { label: string; value: string }) => (
   <View style={s.statBox}>
     <Text style={s.statVal}>{value}</Text>
