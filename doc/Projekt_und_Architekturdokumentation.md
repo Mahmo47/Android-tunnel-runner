@@ -609,151 +609,493 @@ Der Spieler startet mit 3 Leben. Nach jeder Kollision:
 
 ---
 
-## 4 Tooling
+# 4 Tooling
 
-### 4.1 Scripts in `package.json`
+Dieses Kapitel beschreibt alle genutzten Werkzeuge. Für jedes Tool wird der Status transparent gemacht:
 
-| Script | Befehl | Beschreibung |
-|---|---|---|
-| `start` | `expo start` | Dev Server starten (QR-Code für Expo Go) |
-| `start:clear` | `expo start --clear` | Dev Server mit Cache-Clear |
-| `android` | `expo start --android` | Direkt auf Android-Emulator/Device starten |
-| `ios` | `expo start --ios` | Direkt auf iOS-Simulator starten |
-
-### 4.2 Package Management
-
-| Aspekt | Wert |
+| Status | Bedeutung |
 |---|---|
-| Package Manager | **npm** |
-| Lock-Datei | `package-lock.json` |
-| Dependencies (prod) | 23 |
-| Dependencies (dev) | 4 |
-| Privat | `true` (nicht veröffentlichbar) |
+| ✅ Aktiv | Funktioniert, committed |
+| 📄 Committed | Konfigurationsdatei im Repo, noch nicht in den Build integriert |
+| ⏳ Vorbereitet | Konfiguration vorbereitet, noch nicht integriert |
 
-### 4.3 Linter & Formatter
+---
 
-<!-- TODO: Beschreibe den Stand -->
-<!-- Aktueller Stand: Kein ESLint, kein Prettier, kein JSDoc-Enforcement konfiguriert.
-     Empfehlung: eslint-config-expo + prettier + require-jsdoc Rule -->
+## 4.1 Scripts in `package.json`
 
-### 4.4 TypeScript-Konfiguration
+Die `package.json` definiert vier aktive Scripts:
 
-| Option | Wert | Auswirkung |
+```json
+"scripts": {
+  "start":       "expo start",
+  "start:clear": "expo start --clear",
+  "android":     "expo start --android",
+  "ios":         "expo start --ios"
+}
+```
+
+| Script | Wann genutzt | Was passiert |
 |---|---|---|
-| `extends` | `expo/tsconfig.base` | Expo-Standard-Einstellungen |
-| `strict` | `true` | Strikte Typisierung |
-| `paths` | `@/* → ./*` | Saubere Import-Pfade |
-| `include` | `**/*.ts`, `**/*.tsx`, `.expo/types/**/*.d.ts` | Alle TS/TSX-Dateien |
+| `start` | Standard-Entwicklung | Startet Metro Bundler + Expo Dev Server, QR-Code erscheint im Terminal |
+| `start:clear` | Nach Dependency-Updates | Wie `start`, löscht vorher den Metro-Cache. Löst „Module not found"-Fehler |
+| `android` | Android-Gerät per USB | Startet Dev Server und öffnet die App direkt auf dem Gerät |
+| `ios` | iOS-Entwicklung | Startet Dev Server und öffnet den iOS-Simulator (nur macOS) |
 
-### 4.5 Dev Build
+### Vorgesehene Erweiterung
 
-<!-- TODO: Beschreibe den Entwicklungs-Workflow -->
-<!-- `npm start` → Metro Bundler → Expo Go App auf physischem Gerät (QR-Code scannen) -->
-<!-- Gyroskop funktioniert NICHT im Emulator → physisches Device erforderlich -->
+Sechs weitere Scripts sind für den nächsten Sprint vorbereitet:
 
-### 4.6 Production Build
+| Script | Befehl | Zweck |
+|---|---|---|
+| `lint` | `eslint .` | Statische Analyse aller TS/TSX-Dateien |
+| `lint:fix` | `eslint . --fix` | Auto-Fix für behebbare Regelverstöße |
+| `format` | `prettier --write .` | Alle Dateien einheitlich formatieren |
+| `format:check` | `prettier --check .` | Formatierung prüfen ohne zu schreiben (für CI) |
+| `typecheck` | `tsc --noEmit` | TypeScript-Prüfung ohne Artefakte |
+| `test` | `jest` | Unit-Tests ausführen |
 
-<!-- TODO: Beschreibe den Prod-Build-Prozess -->
-<!-- `eas build --platform android` (Expo Application Services) -->
-<!-- Aktuell: Kein EAS-Config im Repo vorhanden -->
-
-### 4.7 Deployment
-
-<!-- TODO: Beschreibe die Deployment-Strategie -->
-<!-- Aktuell: Nur lokale Entwicklung via Expo Go -->
-<!-- Kein App Store / Play Store Release konfiguriert -->
+Diese Scripts referenzieren `devDependencies`, die noch nicht installiert sind. Eine Änderung der `package.json` ohne `npm install` hätte die `package-lock.json` invalidiert – `npm ci` in einer CI-Pipeline würde mit einem Lockfile-Mismatch fehlschlagen. Da keine lokale Entwicklungsumgebung eingerichtet war, wurde dieser Schritt bewusst verschoben, um den lauffähigen Build nicht zu gefährden.
 
 ---
 
-## 5 Qualität
-
-### 5.1 Test-Setup
-
-<!-- TODO: Beschreibe vorhandene Tests -->
-<!-- Aktueller Stand: Keine Unit-Tests, keine E2E-Tests im Repository vorhanden.
-     Kein Jest-Config, kein Detox/Maestro Setup.
-     Empfehlung: Jest + React Native Testing Library für Komponentenlogik -->
-
-### 5.2 CI/CD-Pipeline
-
-<!-- TODO: Beschreibe die CI/CD-Pipeline -->
-<!-- Aktueller Stand: Kein `.github/workflows/`-Verzeichnis vorhanden.
-     Keine GitHub Actions konfiguriert.
-     Empfehlung: Lint + Type-Check + Build Workflow -->
-
----
-
-## 6 Quellcode-Übersicht
-
-### Dateistruktur & Kennzahlen
-
-| Datei | Typ | Zeilen (ca.) | Beschreibung |
-|---|---|---|---|
-| `app/_layout.tsx` | TSX | ~30 | Root Layout mit Stack-Navigation |
-| `app/index.tsx` | TSX | ~140 | Hauptmenü mit Animationen |
-| `app/game.tsx` | TSX | ~557 | Spiellogik (WebView + Native HUD) |
-| `app/gameover.tsx` | TSX | ~173 | Game-Over-Screen mit Grading |
-| `app/settings.tsx` | TSX | ~223 | Einstellungs-Screen |
-| `metro.config.js` | JS | ~9 | Metro-Bundler-Konfiguration |
-| `app.json` | JSON | ~38 | Expo-App-Konfiguration |
-| `package.json` | JSON | ~44 | Dependencies & Scripts |
-| `tsconfig.json` | JSON | ~16 | TypeScript-Konfiguration |
-| `PLANUNG` | Text | ~14 | Aufgabenverteilung |
+## 4.2 Package Management
 
 | Kennzahl | Wert |
 |---|---|
-| **Gesamte Quelldateien (app/)** | 5 TSX-Dateien |
-| **Geschätzter TS/TSX-Code** | ~1.120 Zeilen |
-| **Commits (master)** | 9 |
-| **Branches** | 4 (`master`, `main`, `Dev`, `dev`) |
-| **Contributers** | 2 (Mahmo47, Alex) |
-| **Zeitraum** | 04.02.2026 – 22.03.2026 |
+| Package Manager | npm 10.x (Standard mit Node.js, Expo-Empfehlung) |
+| Lockfile | `package-lock.json` (committed) |
+| Dependencies | 21 |
+| devDependencies | 4 (`@babel/core`, `@types/react`, `@types/three`, `typescript`) |
+
+### Tote Dependencies
+
+Drei Dependencies sind installiert, werden aber **nicht zur Laufzeit verwendet**:
+
+| Package | Grund |
+|---|---|
+| `expo-gl` | Ursprünglich für native OpenGL geplant, durch WebView-Ansatz ersetzt |
+| `expo-three` | Bridge zwischen expo-gl und Three.js – obsolet ohne expo-gl |
+| `three` (npm) | Three.js wird per CDN direkt in der WebView geladen, nicht über npm importiert |
+
+Diese Packages stammen aus der Evaluierungsphase und sollten in einem Maintenance-Sprint per `npm uninstall` bereinigt werden.
 
 ---
 
-## 7 Projektbericht
+## 4.3 TypeScript
 
-### 7.1 Kapazitätsplan (Plan vs. Ist)
+TypeScript im Strict Mode ist das **wirksamste Qualitätswerkzeug** des Projekts:
 
-| Arbeitspaket | Verantwortlich | Plan (h) | Ist (h) | Abweichung |
-|---|---|---|---|---|
-| Projektsetup & Expo Init | Mahmud | <!-- TODO --> | <!-- TODO --> | <!-- TODO --> |
-| 3D-Tunnel-Rendering (Three.js) | Alex | <!-- TODO --> | <!-- TODO --> | <!-- TODO --> |
-| Gyroskop-Steuerung | Alex | <!-- TODO --> | <!-- TODO --> | <!-- TODO --> |
-| Kollisionserkennung & Lives | Alex | <!-- TODO --> | <!-- TODO --> | <!-- TODO --> |
-| HUD & Game-Over-Screen | Mahmud | <!-- TODO --> | <!-- TODO --> | <!-- TODO --> |
-| Settings-Screen | Mahmud & Alex | <!-- TODO --> | <!-- TODO --> | <!-- TODO --> |
-| Haptics & Vibration | Mahmud | <!-- TODO --> | <!-- TODO --> | <!-- TODO --> |
-| Highscore-Persistenz | Mahmud & Alex | <!-- TODO --> | <!-- TODO --> | <!-- TODO --> |
-| Coin-System | Alex | <!-- TODO --> | <!-- TODO --> | <!-- TODO --> |
-| Soundtrack & SFX | Mahmud | <!-- TODO --> | <!-- TODO --> | <!-- TODO --> |
-| Dokumentation & Präsentation | Mahmud & Alex | <!-- TODO --> | <!-- TODO --> | <!-- TODO --> |
-| **Summe** | | **40** | <!-- TODO --> | <!-- TODO --> |
+```json
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true,
+    "paths": { "@/*": ["./*"] }
+  },
+  "include": ["**/*.ts", "**/*.tsx", ".expo/types/**/*.d.ts"]
+}
+```
 
-### 7.2 Lessons Learned
+### Was `strict: true` aktiviert
 
-**1. WebView-Architektur als Workaround für `expo-three`-Inkompatibilität**
-<!-- TODO: Ausformulieren -->
-<!-- Das ursprüngliche Setup nutzte @react-three/fiber + expo-three direkt.
-     Diese Libraries waren inkompatibel mit Expo SDK 54/55.
-     Die Migration zu einem WebView-basierten Ansatz (Three.js via CDN im HTML-String)
-     war aufwändig, ermöglichte aber den Betrieb in Expo Go ohne nativen Build.
-     Lesson: Vor Projektstart Kompatibilität aller Core-Dependencies prüfen. -->
+| Flag | Effekt |
+|---|---|
+| `noImplicitAny` | Verbietet implizites `any` – alle Parameter brauchen explizite Typen |
+| `strictNullChecks` | `null`/`undefined` müssen explizit behandelt werden, z. B. `v ?? 0` |
+| `strictFunctionTypes` | Verhindert unsichere kovariante Parameter in Callbacks |
+| `noImplicitReturns` | Funktionen müssen in allen Pfaden einen Wert zurückgeben |
 
-**2. Inkonsistente Dependency-Versionen zwischen Branches**
-<!-- TODO: Ausformulieren -->
-<!-- Im dev-Branch wurden SDK-55-Versionen genutzt, auf master mussten diese
-     zurück auf SDK-54-kompatible Versionen gedowngraded werden (Commit b962a69).
-     Das führte zu einem großen package-lock.json Diff und Zeitverlust.
-     Lesson: Dependency-Upgrades nur in einem dedizierten Branch durchführen,
-     nach erfolgreichem Build mergen. -->
+### Geteilte Typen
 
-**3. Fehlender Game-Over-Screen als kritischer Bug kurz vor Deadline**
-<!-- TODO: Ausformulieren -->
-<!-- Der letzte Commit (b962a69) hieß "Fixed version fehlender gameover" –
-     ein essentielles Feature (F-03) funktionierte bis kurz vor Abgabe nicht korrekt,
-     weil die Dependency-Versionen im package.json nicht zum Code passten.
-     Lesson: Feature-Vollständigkeit frühzeitig auf einem stabilen Branch sicherstellen;
-     Version-Pinning statt Semver-Ranges für kritische Packages. -->
+Der `GameSettings`-Typ wird aus `settings.tsx` exportiert und in `game.tsx` importiert. TypeScript stellt sicher, dass Difficulty-Werte ausschließlich `'easy' | 'normal' | 'hard'` sein können – ein String wie `'medium'` erzeugt einen Compile-Fehler.
+
+### Grenze von TypeScript
+
+Die ~250 Zeilen JavaScript innerhalb des `buildGameHTML()`-Strings sind für TypeScript unsichtbar. Template-Literal-Inhalte werden nicht analysiert. Fehler dort werden erst zur Laufzeit in der WebView sichtbar – der zentrale Trade-Off der WebView-Architektur (vgl. Kapitel 3).
+
+---
+
+## 4.4 Kommentare & JSDoc  ✅
+
+Alle exportierten Funktionen, Typen und Konstanten sind mit JSDoc-Kommentaren versehen:
+
+```tsx
+/** AsyncStorage-Key für den persistierten Highscore. */
+export const HS_KEY = 'tunnel_highscore_v3';
+
+/**
+ * Hauptmenü-Screen. Zeigt den Titel mit Eingangsanimation, den persönlichen
+ * Highscore, eine kompakte Spielanleitung und Buttons für Game-Start und Settings.
+ */
+export default function MenuScreen() { ... }
+```
+### Visuelle Gliederung
+
+Zusätzlich nutzt `game.tsx` (557 Zeilen) ASCII-Trennlinien zur Sektionsgliederung:
+
+```tsx
+// ───────────────────────────────────────────────────
+// HTML BUILDER
+// ───────────────────────────────────────────────────
+function buildGameHTML(...) { ... }
+
+// ───────────────────────────────────────────────────
+// COMPONENT
+// ───────────────────────────────────────────────────
+export default function GameScreen() { ... }
+```
+
+Die Reihenfolge (Imports → Konstanten → Komponente → Sub-Komponenten → Styles) ist in jeder Datei identisch.
+
+---
+
+## 4.5 Linter & Formatter
+
+### Prettier – 📄 Committed
+
+```json
+{
+  "singleQuote": true,
+  "trailingComma": "all",
+  "printWidth": 120,
+  "semi": true,
+  "tabWidth": 2,
+  "arrowParens": "avoid"
+}
+```
+
+| Regel | Begründung |
+|---|---|
+| `singleQuote` | React-Native-Community-Standard |
+| `printWidth: 120` | Breiter als Default (80), passend für JSX mit langen Props |
+| `trailingComma: "all"` | Saubere Git-Diffs bei mehrzeiligen Objekten |
+
+Aktuell wird Prettier manuell im Editor genutzt (Format on Save). Die CLI-Integration (`npm run format`) wartet auf die devDependency-Installation.
+
+### ESLint – ⏳ Vorbereitet
+
+Eine ESLint Flat Config (`eslint.config.mjs`) ist vorbereitet:
+
+```javascript
+// eslint.config.mjs (Auszug)
+export default [
+  { ignores: ['node_modules/**', '.expo/**', 'dist/**'] },
+  {
+    files: ['**/*.ts', '**/*.tsx'],
+    plugins: {
+      '@typescript-eslint': tsPlugin,
+      'react-hooks':        reactHooksPlugin,
+      'jsdoc':              jsdocPlugin,
+    },
+    rules: {
+      'react-hooks/rules-of-hooks':  'error',
+      'react-hooks/exhaustive-deps': 'warn',
+      'jsdoc/require-jsdoc':         ['warn', { /* ... */ }],
+    },
+  },
+];
+```
+
+| Plugin | Zweck |
+|---|---|
+| `@typescript-eslint` | TypeScript-spezifische Regeln (no-unused-vars, no-explicit-any) |
+| `eslint-plugin-react-hooks` | Erzwingt Rules of Hooks, warnt bei fehlenden Dependencies |
+| `eslint-plugin-jsdoc` | Erzwingt JSDoc an exportierten Funktionen |
+
+Die Integration wartet auf die devDependency-Installation.
+
+---
+
+## 4.6 Dev Build  ✅
+
+Der Entwicklungs-Workflow nutzt **Expo Go** als Dev-Client:
+
+```
+npx expo start → Metro Bundler → QR-Code → Expo Go scannt → App läuft
+```
+
+### Metro Bundler
+
+Metro ist der JavaScript-Bundler für React Native:
+
+- **Transpilation**: TypeScript/JSX → JavaScript via Babel
+- **Bundling**: Alle Module in ein einzelnes Bundle
+- **Hot Module Replacement**: Code-Änderungen ohne App-Neustart
+- **Tree Shaking**: Ungenutzte Exports entfernen
+
+Die `metro.config.js` enthält zwei projektspezifische Anpassungen:
+
+| Anpassung | Grund |
+|---|---|
+| `.cjs` Extension hinzugefügt | Three.js enthält CommonJS-Module, die Metro sonst nicht auflöst |
+| `enablePackageExports: false` | Three.js' `exports`-Feld verursacht Auflösungskonflikte mit Metro |
+
+### Warum Expo Go statt Development Build?
+
+Ein Development Build (via `expo prebuild` + Xcode/Gradle) wäre nur nötig für native Module außerhalb von Expo Go. Da alle genutzten Module (`expo-sensors`, `expo-haptics`, `expo-secure-store`, `react-native-webview`) in Expo Go enthalten sind, war kein nativer Build erforderlich – das spart die Konfiguration von Xcode/Android Studio.
+
+---
+
+## 4.7 Production Build  📄
+
+Die EAS Build-Konfiguration (`eas.json`) definiert drei Profile:
+
+| Profil | Erzeugt | Zweck |
+|---|---|---|
+| `development` | Debug-APK mit Dev Client | Testen nativer Module außerhalb Expo Go |
+| `preview` | Release-APK ohne Store-Signing | Beta-Tests ohne Play Store |
+| `production` | Signiertes AAB (App Bundle) | Store-Release |
+
+| Aspekt | Dev (Expo Go) | Production (EAS Build) |
+|---|---|---|
+| JavaScript | Über Metro Dev Server geladen | Im APK/AAB gebundelt |
+| Native Module | Auf Expo-Go-Set beschränkt | Beliebig |
+| Performance | Debug-Modus | Release-Modus, optimierte Hermes-Engine |
+| Größe | ~70 MB (Expo Go enthält alles) | ~15–25 MB (nur genutzter Code) |
+
+Ein Production Build wurde noch nicht ausgeführt (kein Google Play Developer Account).
+
+---
+
+## 4.8 Deployment
+
+Die App wird aktuell über **Expo Go** verteilt: Entwickler startet `npm start`, Tester scannen den QR-Code im gleichen WLAN. Das ist kein Deployment im eigentlichen Sinne – die App benötigt den laufenden Dev Server.
+
+| Stufe | Tool | Status |
+|---|---|---|
+| Internes Testing | EAS Build (Preview) → APK-Link | 📄 Config committed |
+| Store-Release | EAS Build (Production) + EAS Submit | ⏳ Account fehlt |
+| OTA-Updates | `expo-updates` | 📋 Geplant |
+| CI/CD-Automatisierung | GitHub Actions → EAS Build → Submit | ⏳ Pipeline vorbereitet (vgl. 5.4) |
+
+---
+
+# 5 Qualität
+
+---
+
+## 5.1 Unit Tests (vorbereitet)
+
+### Teststrategie
+
+| Kategorie | Beispiele | Testbarkeit |
+|---|---|---|
+| Reine Funktionen | `getGrade()`, `clamp()`, `DEFAULT_SETTINGS` | ✅ Direkt per Jest testbar |
+| React-Komponenten | `MenuScreen`, `SettingsScreen` | ⚠️ Möglich mit `@testing-library/react-native`, aber aufwendig (Animations, AsyncStorage-Mocks) |
+| WebView-Spiellogik | Kollision, Tunnel-Recycling, Speed-Berechnung | ❌ Nicht unit-testbar (läuft in WebView, kein Zugriff aus Jest) |
+
+### Vorbereitete Konfiguration
+
+```javascript
+// jest.config.js (vorbereitet)
+module.exports = {
+  preset: 'jest-expo',
+  testPathIgnorePatterns: ['/node_modules/', '/.expo/'],
+  collectCoverageFrom: ['app/**/*.{ts,tsx}', '!app/**/*.d.ts'],
+};
+```
+
+### Geplante Tests
+
+| Test | Was wird geprüft |
+|---|---|
+| `getGrade()` | S bei ≥5000, A bei ≥2500, B bei ≥1000, C bei ≥400, D bei <400 |
+| `DEFAULT_SETTINGS` | Sensitivity 0.11, Difficulty `'normal'`, Haptics `true` |
+| `clamp()` Randfälle | Werte unter Min, über Max, exakt auf Grenze |
+
+Die erwartete Coverage liegt bei **15–25%**, da der Großteil der Logik in einem untypisierten HTML-String lebt. Die testbaren reinen Funktionen erreichen dagegen nahezu 100%.
+
+---
+
+## 5.2 End-to-End Tests
+
+### Bewertung
+
+| Framework | Eignung | Status |
+|---|---|---|
+| **Detox** (Wix) | Erfordert nativen Build – inkompatibel mit Expo Go | ❌ |
+| **Maestro** (mobile.dev) | Funktioniert mit Expo Go, YAML-basiert | ⚠️ Geeignet, nicht im Zeitbudget |
+| **Appium** | Komplexes Setup, overengineered für 4 Screens | ❌ |
+
+E2E-Tests wurden nicht implementiert:
+
+1. **WebView-Barriere**: E2E-Frameworks können den Three.js-Zustand (Spielerposition, Kollision) nicht abfragen
+2. **Sensor-Abhängigkeit**: Gyroskop-Daten lassen sich in E2E-Tests nicht zuverlässig simulieren
+3. **Zeitbudget**: Manuelle Tests auf physischen Geräten waren effizienter
+
+### Manueller Testplan (durchgeführt)
+
+| Szenario | Ergebnis |
+|---|---|
+| App starten → Menü sichtbar, Titel-Animation | ✅ |
+| Settings ändern → Spiel starten → Änderungen wirksam | ✅ |
+| 3 Kollisionen → Game Over mit korrektem Score und Grade | ✅ |
+| Pause → Resume → Quit mit Bestätigungs-Dialog | ✅ |
+| Neuer Highscore → Menü → Highscore persistiert | ✅ |
+| Haptics deaktiviert → Kollision → kein Vibration, Flash weiter aktiv | ✅ |
+
+---
+
+## 5.3 CI/CD Pipeline (vorbereitet)
+
+Die vorbereitete GitHub Actions Pipeline:
+
+```mermaid
+flowchart LR
+    A["Push / PR"] --> B["Checkout + Node 20"]
+    B --> C["npm ci"]
+    C --> D["ESLint"]
+    D --> E["tsc --noEmit"]
+    E --> F["Jest --coverage"]
+    F --> G["Prettier --check"]
+```
+
+```yaml
+# .github/workflows/ci.yml (vorbereitet)
+name: CI
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run test -- --coverage
+      - run: npm run format:check
+```
+
+Die Pipeline ist nicht aktiviert, da die referenzierten Scripts (`lint`, `test`, `format:check`) die noch nicht installierten devDependencies benötigen. Die vollständige Automatisierung (Push → CI → EAS Build → Store) ist mit den vorbereiteten Konfigurationen perpektivisch umsetzbar.
+
+---
+
+## 5.4 Lighthouse
+
+Nicht anwendbar bei nativer React-Native-App. Lighthouse analysiert Web-Performance über URLs – die WebView lädt einen lokalen HTML-String und ist nicht über eine URL erreichbar. Die Performance-Optimierungen des Projekts (Pixel-Ratio-Begrenzung, Object Pooling, Delta-Time-Normalisierung) sind in Kapitel 3 dokumentiert.
+
+---
+
+# 6 Quellcode-Übersicht
+
+## Projektstruktur
+
+```
+Android-tunnel-runner/
+├── app/
+│   ├── _layout.tsx        →  Root Layout (Stack Navigator)
+│   ├── index.tsx           →  Menü-Screen
+│   ├── game.tsx            →  Game-Screen (WebView + Three.js + HUD)
+│   ├── gameover.tsx        →  Game-Over-Screen
+│   └── settings.tsx        →  Settings-Screen
+├── assets/                 →  App-Icons, Splash Screen
+├── .prettierrc             →  Formatter-Konfiguration
+├── .prettierignore         →  Formatter-Ausnahmen
+├── eas.json                →  EAS Build-Profile
+├── metro.config.js         →  Metro Bundler-Anpassungen
+├── tsconfig.json           →  TypeScript-Konfiguration
+├── package.json            →  Dependencies & Scripts
+└── package-lock.json       →  Lockfile
+```
+
+## Maßzahlen
+
+| Kennzahl | Wert |
+|---|---|
+| Quelldateien (TSX) | 5 |
+| Gesamte LOC (TypeScript/TSX) | ~1.400 |
+| Davon eingebettetes JS (Three.js in WebView) | ~250 |
+| Größte Datei | `game.tsx` (557 Zeilen) |
+| Kleinste Datei | `_layout.tsx` (28 Zeilen) |
+| JSDoc-Kommentare | 14 |
+| Dependencies | 21 |
+| devDependencies | 4 |
+| Screens / Routen | 4 |
+| Konfigurationsdateien | 6 |
+
+## LOC pro Datei
+
+| Datei | Zeilen | Anteil | Verantwortung |
+|---|---|---|---|
+| `game.tsx` | 557 | 40% | 3D-Engine, WebView, HUD, Gyro-Bridge |
+| `settings.tsx` | 210 | 15% | Settings-UI, Persistenz |
+| `gameover.tsx` | 175 | 12% | Score-Anzeige, Grade, Highscore |
+| `index.tsx` | 140 | 10% | Menü, Animation, Navigation |
+| `_layout.tsx` | 28 | 2% | Stack Navigator, Splash Screen |
+| *Configs + JSON* | ~290 | 21% | tsconfig, metro, package, prettier, eas |
+| **Gesamt** | **~1.400** | **100%** | |
+
+## Komplexitätsverteilung
+
+`game.tsx` enthält 40% des gesamten Codes und vereint drei Schichten: HTML-Builder (Three.js-Szene), React-Komponente (HUD, State, Lifecycle) und die Gyro→WebView-Bridge. Die übrigen vier Dateien sind konventionelle React-Native-Screens mit je einer klar abgegrenzten Aufgabe.
+
+---
+
+# 7 Projektbericht
+
+## 7.1 Kapazitätsplan
+
+**Team:** Mahmoud Abdallah (Entwicklung), Alex Savkov (Dokumentation)
+**Zeitraum:** KW 9–12 (Feb/März 2026), ~40h pro Person
+
+### Mahmud – Entwicklung
+
+| Maßnahme | Plan | Ist |
+|---|---|---|
+| Projektsetup (Expo Init, Repo, Dependencies) | 3h | 5h |
+| 3D-Spiellogik (Three.js, Tunnel, Kollision) | 14h | 18h |
+| Sensor-Integration (Gyro, Haptics) | 4h | 3h |
+| UI-Screens (Menü, Settings, GameOver, HUD) | 8h | 6h |
+| Persistenz (AsyncStorage) | 3h | 2h |
+| Tooling-Configs, Bugfixing, Testing | 8h | 6h |
+| **Gesamt** | **40h** | **40h** |
+
+### Alex – Dokumentation
+
+| Maßnahme | Plan | Ist |
+|---|---|---|
+| Tech Stack Canvas | 2h | 2h |
+| Kap. 3 – Architektur | 12h | 14h |
+| Kap. 4 – Tooling | 5h | 5h |
+| Kap. 5 – Qualität | 5h | 5h |
+| Kap. 6 – Projektbericht | 3h | 3h |
+| JSDoc-Kommentare einfügen | 2h | 2h |
+| Struktur, Einleitung, Review, Anhang | 11h | 9h |
+| **Gesamt** | **40h** | **40h** |
+
+Größte Fehlplanung: 3D-Engine. ~5h flossen in die Evaluierung und Verwerfung von expo-gl, bevor der WebView-Ansatz umgesetzt wurde.
+
+---
+
+## 7.2 Herausforderungen
+
+1. **expo-gl Inkompatibilität:** Natives OpenGL scheiterte an Expo SDK 54. Nach 3 Tagen Debugging Wechsel zu Three.js in WebView – innerhalb von 4h lauffähig.
+
+2. **Debugging im HTML-String:** 250 Zeilen JS ohne Typisierung, ohne Syntax-Highlighting. Fehler = weißer Bildschirm ohne Stack-Trace.
+
+3. **Gyroskop-Varianz:** Sensorwerte unterscheiden sich je Gerät stark. Lösung: konfigurierbarer Sensitivity-Slider (4 Stufen).
+
+4. **Kein lokales Dev-Setup am Ende:** Ohne Terminal kein `npm install` → keine Tooling-Integration mehr möglich, um Build nicht zu gefährden.
+
+---
+
+## 7.3 Lessons Learned
+
+| Erkenntnis | Beispiel |
+|---|---|
+| **Technologie-Spike vor Commitment** | 2h PoC für expo-gl hätte 3 Tage erspart |
+| **Tooling von Tag 1** | ESLint/Jest am Ende einrichten scheiterte am fehlenden `npm install` |
+| **Dev-Umgebung absichern** | GitHub Web-Editor reicht für Doku, nicht für Tooling. Backup: Codespaces |
+| **Manuelle Tests dokumentieren** | Ohne Testplan-Tabelle wären unsere Tests unsichtbar |
+| **WebView als Escape Hatch** | Wichtigste Entscheidung im Projekt – hat die 3D-Spielmechanik gerettet |
 
 ---
