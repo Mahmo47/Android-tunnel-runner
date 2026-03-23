@@ -6,7 +6,7 @@ on:
       - main
     paths:
       - "doc/Projekt_und_Architekturdokumentation.md"
-      - ".github/workflows/build-arc42-pdf.yml"
+      - ".github/build-arc42-pdf.yml"
   workflow_dispatch:
 
 permissions:
