@@ -1,11 +1,11 @@
 # Projekt- & Architekturdokumentation
 
 **Tunnel Runner 3D** │ 
-Modul: Mobile Anwendungen – SoSe 2026 │ 
+Modul: Mobile Anwendungen – WiSe 2025/26 │ 
 Betreuer: Prof. Dr. Olaf Grebner │ 
 Team: Mahmud Das (D867) & Alexander Savkov (D911) │
 Version: 1.0.0
----
+
 # 1 Anforderungen & Ziele
 
 ## 1.1 Themensteckbrief
@@ -36,8 +36,6 @@ Das Minimum Viable Product basiert auf drei Säulen:
 1. **3D-Tunnel mit Hindernissen:** Ein endloser, prozedural generierter Tunnel mit Hindernis-Ringen, die jeweils eine zufällig platzierte Lücke besitzen. Durch Object-Pooling entsteht kein Speicher-Overhead bei unendlicher Laufzeit.
 2. **Gyroskop-Steuerung:** Die Neigung des Geräts steuert die Spielerposition in Echtzeit. Die Sensitivität ist in vier Stufen konfigurierbar.
 3. **Haptisches Feedback:** Drei abgestufte Vibrationsmuster (Wandnähe, Kollision, Game Over) geben dem Spieler physisches Feedback über seinen Spielzustand. Die Haptik ist abschaltbar.
-4. 
----
 
 ## 1.2 Funktionale Anforderungen (Details)
 
@@ -77,8 +75,6 @@ Das Minimum Viable Product basiert auf drei Säulen:
 | A-03 | Cloud-Sync / User-Auth        | Authentifizierung und Datensynchronisation hätten ein MBaaS (Firebase o. Ä.) erfordert – unverhältnismäßig für ein Spiel mit rein lokalen Daten. |
 | A-04 | Leaderboard / Social Features | Globale Ranglisten setzen A-01 und A-03 voraus. Ohne Backend kein sinnvolles Leaderboard.                                |
 
----
-
 ## 1.3 Nicht-funktionale Anforderungen & Qualitätsziele
 
 | ID | Kategorie                      | Anforderung                                                                                                                                                         |
@@ -116,12 +112,6 @@ Das Minimum Viable Product basiert auf drei Säulen:
 | **Bundler** | Metro (Expo) | via `@expo/metro-runtime` | JS-Bundling |
 | **Typen** | @types/react, @types/three | ~19.1.10, ^0.153.0 | TypeScript-Definitionen |
 
-### 2.2 Architektur-Entscheidungen
-
-<!-- TODO: Warum WebView statt expo-gl direkt? Warum kein expo-three? -->
-<!-- Hinweis aus dem Code: "expo-three is NOT used. It's unmaintained and incompatible with SDK 55." -->
-<!-- Stattdessen: Three.js läuft in einem WebView; Gyro-Daten werden per `injectJavaScript()` eingespeist. -->
-
 ---
 
 # 3 Frontend: Struktur & Bausteine
@@ -154,8 +144,6 @@ Zusätzlich definieren die Screens **wiederverwendbare Sub-Komponenten**:
 | `InfoRow`      | `index.tsx`       | Icon + Text-Zeile für die „HOW TO PLAY"-Anleitung        |
 | `StatBox`      | `gameover.tsx`    | Kennzahl-Karte (z. B. Distanz, Speed-Level)              |
 | `Section`      | `settings.tsx`    | Gruppierung mit Titel + Subtitle für Settings-Bereiche   |
-
----
 
 ## 3.2 Komponenten-Details & Interaktion
 
@@ -191,8 +179,6 @@ flowchart LR
 | Settings → Menu      | `router.back()` (Stack-Pop)                   | –                            |
 
 **Wichtig:** Es existiert kein React Context, kein Redux, kein Zustand. Die Screens sind vollständig entkoppelt. Persistierte Daten (Highscore, Settings) werden von jedem Screen eigenständig aus AsyncStorage gelesen.
-
----
 
 ## 3.3 (UI-)Komponenten-Aufbau
 
@@ -241,8 +227,6 @@ const Section = ({ title, subtitle, children }) => (
 ```
 
 Dieses Pattern wird für **Gyroscope Sensitivity**, **Difficulty**, **Haptic Feedback** und **Danger Zone** wiederverwendet. Die `children`-Prop macht die Komponente flexibel: Sie nimmt Segmented Controls, Radio-Buttons, Switches oder Buttons gleichermaßen auf.
-
----
 
 ## 3.4 Bausteinsicht: `GameScreen` – das Herzstück
 
@@ -342,8 +326,6 @@ Das HUD ist ein absolut positioniertes `View` über der WebView. Es zeigt:
 
 Das HUD nutzt `pointerEvents="box-none"`, damit Touch-Events durch das HUD hindurch an die WebView gelangen.
 
----
-
 ## 3.5 Komponenten-Interaktion
 
 Das folgende Sequenzdiagramm zeigt einen typischen Spielzyklus – vom Start bis zur Kollision:
@@ -384,8 +366,6 @@ sequenceDiagram
     end
 ```
 
----
-
 ## 3.6 Modularisierung
 
 ### Aufteilung der fachlichen Logik auf Dateien
@@ -413,8 +393,6 @@ settings.tsx    → export type  GameSettings
 ```
 
 Diese werden in `game.tsx` und `gameover.tsx` importiert. Es gibt keine zirkulären Abhängigkeiten.
-
----
 
 ## 3.7 State Management
 
@@ -451,8 +429,6 @@ Innerhalb der WebView existiert ein zweiter, vollständig getrennter State:
 | `zProg`        | `number`  | Gesamte zurückgelegte Z-Distanz                           |
 | `invinc`       | `boolean` | Unverwundbarkeits-Flag nach Kollision                     |
 
----
-
 ## 3.8 Routing
 
 ### expo-router: File-based Routing
@@ -480,11 +456,7 @@ Expo-Router leitet die Routen automatisch aus der Dateistruktur ab. Die Datei `a
 - **push**: Fügt einen Screen auf den Stack. Der User kann per Back-Geste zurück. Genutzt für Menu → Game und Menu → Settings.
 - **replace**: Ersetzt den aktuellen Screen im Stack. Kein Zurück möglich. Genutzt für Game → GameOver (der User soll nicht zurück ins laufende Spiel navigieren) und GameOver → Menu/Game.
 
----
-
 ## 3.9 Persistenz
-
-### Was wird wo gespeichert?
 
 Die App nutzt zwei Storage-Mechanismen:
 
@@ -519,8 +491,6 @@ await AsyncStorage.multiRemove([SETTINGS_KEY, HS_KEY]);
 
 Diese löscht **beide** Keys in einem Aufruf – sowohl Settings als auch Highscore werden auf Defaults zurückgesetzt.
 
----
-
 ## 3.10 Konfiguration
 
 ### `app.json` – Expo-Konfiguration
@@ -550,8 +520,6 @@ config.resolver.unstable_enablePackageExports = false;
 ```
 
 Die `.cjs`-Extension wird hinzugefügt, weil Three.js (als npm-Dependency installiert, auch wenn es per CDN geladen wird) CommonJS-Module enthält, die Metro sonst nicht auflöst. `unstable_enablePackageExports` wird deaktiviert, um Konflikte mit Three.js' `exports`-Feld in `package.json` zu vermeiden.
-
----
 
 ## 3.11 Implementierung der Fachlogik
 
@@ -619,8 +587,6 @@ Dieses Kapitel beschreibt alle genutzten Werkzeuge. Für jedes Tool wird der Sta
 | 📄 Committed | Konfigurationsdatei im Repo, noch nicht in den Build integriert |
 | ⏳ Vorbereitet | Konfiguration vorbereitet, noch nicht integriert |
 
----
-
 ## 4.1 Scripts in `package.json`
 
 Die `package.json` definiert vier aktive Scripts:
@@ -656,8 +622,6 @@ Sechs weitere Scripts sind für den nächsten Sprint vorbereitet:
 
 Diese Scripts referenzieren `devDependencies`, die noch nicht installiert sind. Eine Änderung der `package.json` ohne `npm install` hätte die `package-lock.json` invalidiert – `npm ci` in einer CI-Pipeline würde mit einem Lockfile-Mismatch fehlschlagen. Da keine lokale Entwicklungsumgebung eingerichtet war, wurde dieser Schritt bewusst verschoben, um den lauffähigen Build nicht zu gefährden.
 
----
-
 ## 4.2 Package Management
 
 | Kennzahl | Wert |
@@ -678,8 +642,6 @@ Drei Dependencies sind installiert, werden aber **nicht zur Laufzeit verwendet**
 | `three` (npm) | Three.js wird per CDN direkt in der WebView geladen, nicht über npm importiert |
 
 Diese Packages stammen aus der Evaluierungsphase und sollten in einem Maintenance-Sprint per `npm uninstall` bereinigt werden.
-
----
 
 ## 4.3 TypeScript
 
@@ -713,8 +675,6 @@ Der `GameSettings`-Typ wird aus `settings.tsx` exportiert und in `game.tsx` impo
 
 Die ~250 Zeilen JavaScript innerhalb des `buildGameHTML()`-Strings sind für TypeScript unsichtbar. Template-Literal-Inhalte werden nicht analysiert. Fehler dort werden erst zur Laufzeit in der WebView sichtbar – der zentrale Trade-Off der WebView-Architektur (vgl. Kapitel 3).
 
----
-
 ## 4.4 Kommentare & JSDoc  ✅
 
 Alle exportierten Funktionen, Typen und Konstanten sind mit JSDoc-Kommentaren versehen:
@@ -746,8 +706,6 @@ export default function GameScreen() { ... }
 ```
 
 Die Reihenfolge (Imports → Konstanten → Komponente → Sub-Komponenten → Styles) ist in jeder Datei identisch.
-
----
 
 ## 4.5 Linter & Formatter
 
@@ -804,8 +762,6 @@ export default [
 
 Die Integration wartet auf die devDependency-Installation.
 
----
-
 ## 4.6 Dev Build  ✅
 
 Der Entwicklungs-Workflow nutzt **Expo Go** als Dev-Client:
@@ -834,8 +790,6 @@ Die `metro.config.js` enthält zwei projektspezifische Anpassungen:
 
 Ein Development Build (via `expo prebuild` + Xcode/Gradle) wäre nur nötig für native Module außerhalb von Expo Go. Da alle genutzten Module (`expo-sensors`, `expo-haptics`, `expo-secure-store`, `react-native-webview`) in Expo Go enthalten sind, war kein nativer Build erforderlich – das spart die Konfiguration von Xcode/Android Studio.
 
----
-
 ## 4.7 Production Build  📄
 
 Die EAS Build-Konfiguration (`eas.json`) definiert drei Profile:
@@ -855,8 +809,6 @@ Die EAS Build-Konfiguration (`eas.json`) definiert drei Profile:
 
 Ein Production Build wurde noch nicht ausgeführt (kein Google Play Developer Account).
 
----
-
 ## 4.8 Deployment
 
 Die App wird aktuell über **Expo Go** verteilt: Entwickler startet `npm start`, Tester scannen den QR-Code im gleichen WLAN. Das ist kein Deployment im eigentlichen Sinne – die App benötigt den laufenden Dev Server.
@@ -871,8 +823,6 @@ Die App wird aktuell über **Expo Go** verteilt: Entwickler startet `npm start`,
 ---
 
 # 5 Qualität
-
----
 
 ## 5.1 Unit Tests (vorbereitet)
 
@@ -905,8 +855,6 @@ module.exports = {
 
 Die erwartete Coverage liegt bei **15–25%**, da der Großteil der Logik in einem untypisierten HTML-String lebt. Die testbaren reinen Funktionen erreichen dagegen nahezu 100%.
 
----
-
 ## 5.2 End-to-End Tests
 
 ### Bewertung
@@ -933,8 +881,6 @@ E2E-Tests wurden nicht implementiert:
 | Pause → Resume → Quit mit Bestätigungs-Dialog | ✅ |
 | Neuer Highscore → Menü → Highscore persistiert | ✅ |
 | Haptics deaktiviert → Kollision → kein Vibration, Flash weiter aktiv | ✅ |
-
----
 
 ## 5.3 CI/CD Pipeline (vorbereitet)
 
@@ -1047,7 +993,7 @@ Android-tunnel-runner/
 **Team:** Mahmoud Abdallah (Entwicklung), Alex Savkov (Dokumentation)
 **Zeitraum:** KW 9–12 (Feb/März 2026), ~40h pro Person
 
-### Mahmud – Entwicklung
+### Mahmud - Entwicklung
 
 | Maßnahme | Plan | Ist |
 |---|---|---|
@@ -1059,7 +1005,7 @@ Android-tunnel-runner/
 | Tooling-Configs, Bugfixing, Testing | 8h | 6h |
 | **Gesamt** | **40h** | **40h** |
 
-### Alex – Dokumentation
+### Alex - Dokumentation
 
 | Maßnahme | Plan | Ist |
 |---|---|---|
@@ -1074,8 +1020,6 @@ Android-tunnel-runner/
 
 Größte Fehlplanung: 3D-Engine. ~5h flossen in die Evaluierung und Verwerfung von expo-gl, bevor der WebView-Ansatz umgesetzt wurde.
 
----
-
 ## 7.2 Herausforderungen
 
 1. **expo-gl Inkompatibilität:** Natives OpenGL scheiterte an Expo SDK 54. Nach 3 Tagen Debugging Wechsel zu Three.js in WebView – innerhalb von 4h lauffähig.
@@ -1085,8 +1029,6 @@ Größte Fehlplanung: 3D-Engine. ~5h flossen in die Evaluierung und Verwerfung v
 3. **Gyroskop-Varianz:** Sensorwerte unterscheiden sich je Gerät stark. Lösung: konfigurierbarer Sensitivity-Slider (4 Stufen).
 
 4. **Kein lokales Dev-Setup am Ende:** Ohne Terminal kein `npm install` → keine Tooling-Integration mehr möglich, um Build nicht zu gefährden.
-
----
 
 ## 7.3 Lessons Learned
 
